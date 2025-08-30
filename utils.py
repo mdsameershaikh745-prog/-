@@ -1,7 +1,6 @@
-import random
 import time
-import math
-import os
+import random
+from datetime import timedelta
 from pyrogram.errors import FloodWait
 
 class Timer:
@@ -15,17 +14,11 @@ class Timer:
             return True
         return False
 
-
-from datetime import datetime,timedelta
-
-#lets do calculations
-def hrb(value, digits= 2, delim= "", postfix=""):
-    """Return a human-readable file size.
-    """
+def hrb(value, digits=2, delim="", postfix=""):
     if value is None:
         return None
     chosen_unit = "B"
-    for unit in ("KB", "MB", "GB", "TB"):
+    for unit in ("KiB", "MiB", "GiB", "TiB"):
         if value > 1000:
             value /= 1024
             chosen_unit = unit
@@ -33,39 +26,37 @@ def hrb(value, digits= 2, delim= "", postfix=""):
             break
     return f"{value:.{digits}f}" + delim + chosen_unit + postfix
 
-def hrt(seconds, precision = 0):
-    """Return a human-readable time delta as a string.
-    """
+def hrt(seconds, precision=0):
     pieces = []
     value = timedelta(seconds=seconds)
-    
 
     if value.days:
-        pieces.append(f"{value.days}day")
+        pieces.append(f"{value.days}d")
 
     seconds = value.seconds
 
     if seconds >= 3600:
         hours = int(seconds / 3600)
-        pieces.append(f"{hours}hr")
+        pieces.append(f"{hours}h")
         seconds -= hours * 3600
 
     if seconds >= 60:
         minutes = int(seconds / 60)
-        pieces.append(f"{minutes}min")
+        pieces.append(f"{minutes}m")
         seconds -= minutes * 60
 
     if seconds > 0 or not pieces:
-        pieces.append(f"{seconds}sec")
+        pieces.append(f"{seconds}s")
 
     if not precision:
         return "".join(pieces)
 
     return "".join(pieces[:precision])
 
-
-
 timer = Timer()
+
+EMOJIS = ["🦋", "🔥", "💥", "💫", "👑", "🥀", "🕊", "💎", "💖", "✨", "🌟", "🕉", "☯️", "🐉", "❤️‍🔥", "💎", "💖"]
+ 
 
 async def progress_bar(current, total, reply, start):
     if timer.can_send():
@@ -78,29 +69,32 @@ async def progress_bar(current, total, reply, start):
             elapsed_time = round(diff)
             speed = current / elapsed_time
             remaining_bytes = total - current
-            if speed > 0:
-                eta_seconds = remaining_bytes / speed
-                eta = hrt(eta_seconds, precision=1)
-            else:
-                eta = "-"
+            eta = hrt(remaining_bytes / speed, precision=1) if speed > 0 else "-"
             sp = str(hrb(speed)) + "/s"
             tot = hrb(total)
             cur = hrb(current)
-            bar_length = 11
+
+            # Bar logic (►►►▷▷▷ style)
+            bar_length = 12
             completed_length = int(current * bar_length / total)
             remaining_length = bar_length - completed_length
+            progress_bar_visual = "►" * completed_length + "▷" * remaining_length
 
-            symbol_pairs = [
-                ("▬", "▭"),
-                ("▰", "▱")
-            ]
-            chosen_pair = random.choice(symbol_pairs)
-            completed_symbol, remaining_symbol = chosen_pair
+            # Random emoji
+            big_emoji = random.choice(EMOJIS)
 
-            progress_bar = completed_symbol * completed_length + remaining_symbol * remaining_length
-            
             try:
-                await reply.edit(f'`╭──⌯════ 𝗨𝗽𝗹𝗼𝗮𝗱𝗶𝗻𝗴 ═════⌯──╮\n├⚡ {progress_bar}\n├⚙️ Progress ➤ | {perc} |\n├🚀 Speed ➤ | {sp} |\n├📟 Processed ➤ | {cur} |\n├🧲 Size ➤ | {tot} |\n├🕑 ETA ➤ | {eta} |\n╰─══✨ @DOCTOR_JB ✨══─╯`') 
+                await reply.edit(
+                    f'<b>🔥•°•⩺SAMEER BHYYA⩹•°•💚\n\n'
+                    f'╭━━━━━━━━━━𝗔💚𝗦━━━━━━━━➣\n\n'
+                    f'┣⪼ 🚀 <u>↑↓𝗨𝗣𝗟𝗢𝗔𝗗𝗜𝗡𝗚 𝗪𝗔𝗜𝗧...↑↓</u> 🚀\n\n'
+                    f'┣⪼ 📈 {progress_bar_visual} | {perc}\n\n'
+                    f'┣⪼ SPEED ⚡ {sp}\n\n'
+                    f'┣⪼ LOADED 📦 {cur}\n\n'
+                    f'┣⪼ SIZE 🧲 {tot}\n\n'
+                    f'┣⪼ ETA ⏳ {eta}\n\n'
+                    f'╰━《 @ASPSIR01♡⎯꯭̽𝅃꯭᳚🦋 شیخ شہاب 𝅥ͦ𝆬⋆𝆹𝅥𝅮᪳🪽⁬》━➣\n\n'
+                    f'【🆔@ASPSIR09♡⎯꯭̽𝅃꯭᳚🦋 شیخ شہاب 𝅥ͦ𝆬⋆𝆹𝅥𝅮᪳🪽⁬】\n\n {big_emoji}</b>'
+                )
             except FloodWait as e:
                 time.sleep(e.x)
-
